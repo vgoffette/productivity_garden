@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Productivity Garden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --bg2: #ede7d9;
+    --bg3: #e3dccf;
+    --surface: #faf7f2;
+    --surface2: #f0ebe0;
+    --border: #d4c9b5;
+    --border2: #c5b99f;
+    --text: #2c2416;
+    --text2: #6b5d47;
+    --text3: #9b8b72;
+    --accent: #5a7a3a;
+    --accent2: #7a9a55;
+    --accent-light: #d4e8c0;
+    --rare: #7a5a2a;
+    --rare-light: #e8d4a0;
+    --extinct: #5a2a5a;
+    --extinct-light: #e8c0e8;
+    --danger: #8a3a2a;
+    --shadow: rgba(44,36,22,0.12);
+  }
+  [data-theme="dark"] {
+    --bg: #1a1710;
+    --bg2: #201e14;
+    --bg3: #26231a;
+    --surface: #2a2720;
+    --surface2: #312e26;
+    --border: #3d3a2f;
+    --border2: #4a4738;
+    --text: #f0e8d8;
+    --text2: #c0b090;
+    --text3: #8a7a60;
+    --accent: #7aaa50;
+    --accent2: #9acc70;
+    --accent-light: #2a3a1a;
+    --rare: #c09050;
+    --rare-light: #3a2a10;
+    --extinct: #b070b0;
+    --extinct-light: #2a102a;
+    --shadow: rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* AUTH SCREEN */
+  #auth-screen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+    z-index: 1000;
+  }
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 8px 40px var(--shadow);
+  }
+  .auth-logo {
+    font-size: 64px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .auth-card h1 {
+    font-family: 'Lora', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .auth-card p {
+    font-size: 13px;
+    color: var(--text3);
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+  #g_signin_btn { display: flex; justify-content: center; }
+
+  /* MAIN APP */
+  #app { display: none; }
+  #app.visible { display: block; }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-logo { font-size: 28px; }
+  .header-title {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .user-info { display: flex; align-items: center; gap: 8px; }
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    object-fit: cover;
+  }
+  .user-name { font-size: 12px; color: var(--text2); }
+  .btn-icon {
+    background: none; border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px;
+    cursor: pointer; font-size: 14px;
+    color: var(--text2);
+    transition: all 0.2s;
+  }
+  .btn-icon:hover { background: var(--surface2); border-color: var(--border2); }
+
+  /* NAV TABS */
+  nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex; gap: 0;
+  }
+  .nav-tab {
+    background: none; border: none;
+    padding: 14px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .nav-tab:hover { color: var(--text2); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* MAIN CONTENT */
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* GARDEN PANEL */
+  .garden-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+
+  /* CANVAS GARDEN */
+  .garden-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+  #garden-canvas { display: block; width: 100%; }
+  #plant-layer {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .plant-el {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+    pointer-events: all;
+    transition: transform 0.2s;
+    text-align: center;
+  }
+  .plant-el:hover { transform: translate(-50%, -100%) scale(1.1); }
+  .plant-el .plant-svg { display: block; }
+  .plant-el .plant-label {
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+  .plant-el.blurred .plant-svg { filter: blur(3px) grayscale(0.5); }
+
+  /* SIDEBAR */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* SEED BANK */
+  .seed-slots { display: flex; flex-direction: column; gap: 8px; }
+  .seed-slot {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    min-height: 52px;
+  }
+  .seed-slot:hover:not(.empty) { border-color: var(--accent); background: var(--accent-light); }
+  .seed-slot.empty { cursor: default; opacity: 0.4; }
+  .seed-icon { font-size: 20px; flex-shrink: 0; }
+  .seed-info { flex: 1; min-width: 0; }
+  .seed-task { font-size: 11px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .seed-tier {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .tier-basic { background: var(--bg3); color: var(--text3); }
+  .tier-rare { background: var(--rare-light); color: var(--rare); }
+  .tier-extinct { background: var(--extinct-light); color: var(--extinct); }
+
+  /* PLANTED PLANTS LIST */
+  .planted-list { display: flex; flex-direction: column; gap: 8px; }
+  .planted-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .planted-item:hover { border-color: var(--accent2); }
+  .planted-icon { font-size: 20px; }
+  .planted-info { flex: 1; min-width: 0; }
+  .planted-task { font-size: 11px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .planted-phase { font-size: 10px; color: var(--text3); }
+  .btn-complete {
+    font-size: 10px;
+    padding: 4px 8px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    transition: opacity 0.2s;
+  }
+  .btn-complete:hover { opacity: 0.85; }
+  .btn-complete:disabled { opacity: 0.4; cursor: default; }
+
+  /* TASKS PANEL */
+  .tasks-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .tasks-header h2 { font-family: 'Lora', serif; font-size: 22px; }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+
+  .task-list { display: flex; flex-direction: column; gap: 10px; }
+  .task-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    transition: all 0.2s;
+  }
+  .task-card:hover { border-color: var(--border2); }
+  .task-main { flex: 1; min-width: 0; }
+  .task-title-text { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+  .task-meta { font-size: 11px; color: var(--text3); }
+  .task-actions { display: flex; gap: 8px; align-items: center; }
+  .btn-sm {
+    font-size: 11px; padding: 5px 10px;
+    border-radius: 6px; cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    transition: all 0.2s; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text2);
+  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* CATALOGUE PANEL */
+  .catalogue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+  }
+  .catalogue-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 12px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .catalogue-card:hover { border-color: var(--border2); }
+  .catalogue-card.discovered { cursor: default; }
+  .catalogue-card.undiscovered { opacity: 0.5; }
+  .catalogue-icon { font-size: 36px; margin-bottom: 8px; }
+  .catalogue-icon.hidden { filter: grayscale(1) brightness(0.5); }
+  .catalogue-name { font-size: 12px; color: var(--text); margin-bottom: 4px; }
+  .catalogue-name.hidden { color: var(--text3); }
+  .catalogue-desc { font-size: 10px; color: var(--text3); line-height: 1.5; }
+  .catalogue-count {
+    font-size: 10px; color: var(--accent);
+    margin-top: 6px;
+  }
+  .catalogue-tier-badge {
+    display: inline-block;
+    font-size: 9px; padding: 2px 6px;
+    border-radius: 4px; margin-top: 4px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 500;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 440px; width: 90%;
+    box-shadow: 0 16px 64px var(--shadow);
+    transform: translateY(12px);
+    transition: transform 0.2s;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal h3 { font-family: 'Lora', serif; font-size: 20px; margin-bottom: 16px; }
+  .modal-close {
+    float: right; background: none; border: none;
+    font-size: 20px; cursor: pointer; color: var(--text3);
+    margin-top: -4px;
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; display: block; letter-spacing: 0.05em; }
+  .form-input {
+    width: 100%; padding: 10px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { outline: none; border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-secondary {
+    background: var(--surface2); color: var(--text2);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    cursor: pointer;
+  }
+
+  /* REWARD MODAL */
+  .reward-content { text-align: center; padding: 12px 0; }
+  .reward-plant { font-size: 72px; margin-bottom: 12px; }
+  .reward-title { font-family: 'Lora', serif; font-size: 24px; margin-bottom: 8px; }
+  .reward-desc { font-size: 12px; color: var(--text3); line-height: 1.6; margin-bottom: 16px; }
+  .reward-tier {
+    display: inline-block;
+    padding: 4px 12px; border-radius: 6px;
+    font-size: 11px; font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  /* PLANT DETAIL MODAL */
+  .plant-detail { text-align: center; }
+  .plant-detail-icon { font-size: 64px; margin-bottom: 12px; }
+  .phase-bar-wrap { margin: 12px 0; }
+  .phase-bar {
+    height: 6px; background: var(--bg3);
+    border-radius: 3px; overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .phase-bar-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 3px; transition: width 0.5s;
+  }
+  .phase-label { font-size: 11px; color: var(--text3); }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--text); color: var(--bg);
+    padding: 12px 18px; border-radius: 10px;
+    font-size: 12px; z-index: 2000;
+    opacity: 0; transform: translateY(8px);
+    transition: all 0.3s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* EMPTY STATES */
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--text3); font-size: 13px;
+  }
+  .empty-state .es-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* PROGRESS RING */
+  .progress-ring { margin: 8px auto; }
+
+  /* STATS ROW */
+  .stats-row {
+    display: flex; gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    flex: 1; text-align: center;
+  }
+  .stat-value { font-size: 20px; font-weight: 500; color: var(--accent); font-family: 'Lora', serif; }
+  .stat-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  /* SCROLL */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    .garden-layout { grid-template-columns: 1fr; }
+    nav { overflow-x: auto; }
+    .catalogue-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    .stats-row { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <span class="auth-logo">🌱</span>
+    <h1>Productivity Garden</h1>
+    <p>Complete tasks to grow your garden.<br>Every seed holds a secret plant.</p>
+    <div id="g_signin_btn"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <span class="header-logo">🌿</span>
+      <span class="header-title">Productivity Garden</span>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <img id="user-avatar" class="user-avatar" src="" alt="">
+        <span id="user-name" class="user-name"></span>
+      </div>
+      <button class="btn-icon" id="theme-toggle" title="Toggle theme">🌙</button>
+      <button class="btn-icon" id="logout-btn" title="Sign out">↩</button>
+    </div>
+  </header>
+
+  <nav>
+    <button class="nav-tab active" data-tab="garden">🌻 Garden</button>
+    <button class="nav-tab" data-tab="tasks">📋 Tasks</button>
+    <button class="nav-tab" data-tab="catalogue">📖 Catalogue</button>
+  </nav>
+
+  <main>
+    <!-- GARDEN PANEL -->
+    <div class="panel active" id="panel-garden">
+      <div class="garden-layout">
+        <div>
+          <div class="garden-container">
+            <canvas id="garden-canvas" height="420"></canvas>
+            <div id="plant-layer"></div>
+          </div>
+          <p style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center;">
+            Click a seed to plant it · Click a plant to view details
+          </p>
+        </div>
+        <div class="sidebar">
+          <div class="card">
+            <div class="card-title">🌰 Seed Bank (0/5)</div>
+            <div class="seed-slots" id="seed-slots"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🌿 Planted (0/5)</div>
+            <div class="planted-list" id="planted-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS PANEL -->
+    <div class="panel" id="panel-tasks">
+      <div class="tasks-header">
+        <h2>Tasks</h2>
+        <button class="btn-primary" id="add-task-btn">+ New Task</button>
+      </div>
+      <div class="stats-row" id="task-stats"></div>
+      <div class="task-list" id="task-list"></div>
+    </div>
+
+    <!-- CATALOGUE PANEL -->
+    <div class="panel" id="panel-catalogue">
+      <div style="margin-bottom:20px;">
+        <h2 style="font-family:'Lora',serif;font-size:22px;margin-bottom:4px;">Plant Catalogue</h2>
+        <p style="font-size:12px;color:var(--text3);">Discover all 15 plant species by completing tasks.</p>
+      </div>
+      <div class="catalogue-grid" id="catalogue-grid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-task')">×</button>
+    <h3 id="modal-task-title">New Task</h3>
+    <div class="form-group">
+      <label class="form-label">TASK TITLE</label>
+      <input class="form-input" id="task-title-input" type="text" placeholder="What do you need to do?">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ESTIMATED TIME (minutes)</label>
+      <input class="form-input" id="task-time-input" type="number" min="1" placeholder="30">
+    </div>
+    <div class="form-group">
+      <label class="form-label">NOTES (optional)</label>
+      <input class="form-input" id="task-notes-input" type="text" placeholder="Any notes...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-task')">Cancel</button>
+      <button class="btn-primary" id="save-task-btn">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-plant-detail">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-plant-detail')">×</button>
+    <div class="plant-detail" id="plant-detail-content"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-reward">
+  <div class="modal">
+    <div class="reward-content" id="reward-content"></div>
+    <div class="modal-actions" style="justify-content:center;margin-top:16px;">
+      <button class="btn-primary" onclick="closeModal('modal-reward')">Wonderful!</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// CONSTANTS & DATA
+// ============================================================
+//const GOOGLE_CLIENT_ID = '234074782537-7ac11dsmnvmhfob9cufqmorpkbg97qrb.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '1017651725439-c066hv4514fd9h1k77rccfpnd8i3240a.apps.googleusercontent.com';
+const STORAGE_PREFIX = 'productivityGarden:';
+
+const PHASE_DURATIONS = [20, 60, 120, 240, 1440]; // minutes
+const TOTAL_MINUTES = PHASE_DURATIONS.reduce((a,b)=>a+b,0);
+
+const PLANT_TYPES = [
+  // Basic (0-4)
+  { id:0, name:'Clover',      tier:'basic',   desc:'A cheerful three-leafed sprout that brings quiet luck.',  emoji:'🍀', color:'#5a7a3a' },
+  { id:1, name:'Fern',        tier:'basic',   desc:'Ancient fronds unfurling in filtered light.',             emoji:'🌿', color:'#6a8a45' },
+  { id:2, name:'Daisy',       tier:'basic',   desc:'Simple white petals around a golden center.',             emoji:'🌼', color:'#c8b830' },
+  { id:3, name:'Mushroom',    tier:'basic',   desc:'A spotted cap emerging from rich dark soil.',             emoji:'🍄', color:'#c05030' },
+  { id:4, name:'Sprout',      tier:'basic',   desc:'The first hopeful curl of a new beginning.',              emoji:'🌱', color:'#50a050' },
+  // Rare (5-9)
+  { id:5, name:'Sunflower',   tier:'rare',    desc:'Tall and radiant, always turning toward the light.',      emoji:'🌻', color:'#e8a020' },
+  { id:6, name:'Rose',        tier:'rare',    desc:'A delicate bloom with a hidden thorny strength.',         emoji:'🌹', color:'#c03050' },
+  { id:7, name:'Lotus',       tier:'rare',    desc:'Pure petals rising from still, dark water.',              emoji:'🪷', color:'#c06080' },
+  { id:8, name:'Bamboo',      tier:'rare',    desc:'Hollow and strong — grows fastest in adversity.',         emoji:'🎋', color:'#408050' },
+  { id:9, name:'Cherry Blossom',tier:'rare',  desc:'Fleeting pink clouds that celebrate impermanence.',       emoji:'🌸', color:'#e890b0' },
+  // Extinct (10-14)
+  { id:10,name:'Dragon Lily', tier:'extinct', desc:'A mythic bloom said to grant visions of the future.',    emoji:'🌺', color:'#c04020' },
+  { id:11,name:'Moon Orchid', tier:'extinct', desc:'Blooms only when its keeper sleeps below a full moon.',  emoji:'🪻', color:'#8050c0' },
+  { id:12,name:'Frost Fern',  tier:'extinct', desc:'Crystalizes in winter air, preserving hidden secrets.',  emoji:'❄️', color:'#5090c0' },
+  { id:13,name:'Echo Bloom',  tier:'extinct', desc:'Each petal reflects a completed dream.',                  emoji:'💮', color:'#c080a0' },
+  { id:14,name:'Void Cactus', tier:'extinct', desc:'Survives in absolute silence. Rarely surfaces.',         emoji:'🌵', color:'#507050' },
+];
+
+const TIER_GROUPS = {
+  basic:   [0,1,2,3,4],
+  rare:    [5,6,7,8,9],
+  extinct: [10,11,12,13,14],
+};
+
+const PROB = {
+  basic:   { basic:0.50, rare:0.50, extinct:0.00 },
+  rare:    { basic:0.25, rare:0.50, extinct:0.25 },
+  extinct: { basic:0.00, rare:0.00, extinct:0.00 }, // no seed
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let userId = null;
+let state = {
+  userProfile: {},
+  themePreference: 'light',
+  tasks: [],
+  seedBank: [],       // max 5
+  planted: [],        // max 5
+  catalogue: {},      // plantTypeId -> { discovered, count }
+};
+
+function getKey() { return STORAGE_PREFIX + userId; }
+function saveState() {
+  if (!userId) return;
+  localStorage.setItem(getKey(), JSON.stringify(state));
+}
+function loadState() {
+  const raw = localStorage.getItem(getKey());
+  if (raw) {
+    try { state = { ...state, ...JSON.parse(raw) }; } catch(e) {}
+  }
+  // Init catalogue for all plants
+  PLANT_TYPES.forEach(p => {
+    if (!state.catalogue[p.id]) state.catalogue[p.id] = { discovered: false, count: 0 };
+  });
+}
+
+// ============================================================
+// GOOGLE AUTH
+// ============================================================
+function initGoogleAuth() {
+	console.log('begin oauth');
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleCredential,
+  });
+  console.log('begin rendering google login button');
+  google.accounts.id.renderButton(
+    document.getElementById('g_signin_btn'),
+    { theme: 'outline', size: 'large', shape: 'rectangular', text: 'signin_with' }
+  );
+  // Check if already logged in
+  console.log('begin checking localstorage for oauth user id');
+  const savedId = localStorage.getItem('pg_userId');
+  if (savedId) {
+    const profile = JSON.parse(localStorage.getItem('pg_profile') || '{}');
+    if (profile.name) {
+      userId = savedId;
+      finalizeLogin(profile);
+    }
+  }
+}
+
+function handleCredential(response) {
+console.log('in handlecreation which is the handler for callback that is triggered by google.accounts.id.initialize');
+console.log('in handlecreation response = ' + response);
+  const payload = parseJwt(response.credential);
+  userId = payload.sub;
+  const profile = {
+    name: payload.name,
+    email: payload.email,
+    picture: payload.picture,
+  };
+  localStorage.setItem('pg_userId', userId);
+  localStorage.setItem('pg_profile', JSON.stringify(profile));
+  finalizeLogin(profile);
+}
+
+function finalizeLogin(profile) {
+  loadState();
+  state.userProfile = profile;
+  saveState();
+  document.getElementById('user-name').textContent = profile.name?.split(' ')[0] || 'Gardener';
+  if (profile.picture) {
+    document.getElementById('user-avatar').src = profile.picture;
+  } else {
+    document.getElementById('user-avatar').style.display = 'none';
+  }
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  applyTheme();
+  renderAll();
+}
+
+function parseJwt(token) {
+  const base64 = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+  return JSON.parse(atob(base64));
+}
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  google.accounts.id.disableAutoSelect();
+  localStorage.removeItem('pg_userId');
+  localStorage.removeItem('pg_profile');
+  userId = null;
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('auth-screen').style.display = 'flex';
+});
+
+// ============================================================
+// THEME
+// ============================================================
+function applyTheme() {
+  const t = state.themePreference || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('theme-toggle').textContent = t === 'dark' ? '☀️' : '🌙';
+}
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  state.themePreference = state.themePreference === 'dark' ? 'light' : 'dark';
+  applyTheme();
+  saveState();
+  drawGardenCanvas();
+});
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'garden') { drawGardenCanvas(); renderPlants(); }
+  });
+});
+
+// ============================================================
+// CANVAS GARDEN BACKGROUND
+// ============================================================
+function drawGardenCanvas() {
+  const canvas = document.getElementById('garden-canvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.offsetWidth || 680;
+  canvas.width = w;
+  canvas.height = 420;
+  const dark = state.themePreference === 'dark';
+
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0, 0, 0, 280);
+  if (dark) {
+    sky.addColorStop(0, '#0d1a0d');
+    sky.addColorStop(1, '#1a2a14');
+  } else {
+    sky.addColorStop(0, '#d4ecd4');
+    sky.addColorStop(1, '#e8f5e0');
+  }
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, 280);
+
+  // Ground gradient
+  const ground = ctx.createLinearGradient(0, 280, 0, 420);
+  if (dark) {
+    ground.addColorStop(0, '#1a1208');
+    ground.addColorStop(1, '#0e0a04');
+  } else {
+    ground.addColorStop(0, '#8b6340');
+    ground.addColorStop(1, '#6b4820');
+  }
+  ctx.fillStyle = ground;
+  ctx.fillRect(0, 280, w, 140);
+
+  // Grass strip
+  const grass = ctx.createLinearGradient(0, 260, 0, 310);
+  if (dark) {
+    grass.addColorStop(0, '#1a3a10');
+    grass.addColorStop(1, '#1a2a0a');
+  } else {
+    grass.addColorStop(0, '#5a9040');
+    grass.addColorStop(1, '#4a7830');
+  }
+  ctx.fillStyle = grass;
+  ctx.fillRect(0, 260, w, 60);
+
+  // Wavy grass line
+  ctx.beginPath();
+  ctx.moveTo(0, 270);
+  for (let x = 0; x <= w; x += 20) {
+    ctx.quadraticCurveTo(x+5, 265+Math.sin(x*0.15)*6, x+20, 270+Math.sin((x+10)*0.18)*5);
+  }
+  ctx.lineTo(w, 420); ctx.lineTo(0, 420);
+  ctx.fillStyle = dark ? '#1e4010' : '#6aaa50';
+  ctx.fill();
+
+  // Soft clouds / stars
+  if (!dark) {
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    [[80,60,30],[200,40,20],[400,70,25],[600,45,18]].forEach(([x,y,r]) => {
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x+r*0.8,y-r*0.3,r*0.7,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x-r*0.7,y-r*0.2,r*0.6,0,Math.PI*2); ctx.fill();
+    });
+  } else {
+    // stars
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    for (let i = 0; i < 40; i++) {
+      const sx = (i * 173.3) % w;
+      const sy = (i * 97.7) % 240;
+      ctx.beginPath(); ctx.arc(sx, sy, 0.8, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  // Soil texture lines
+  ctx.strokeStyle = dark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)';
+  ctx.lineWidth = 1;
+  for (let y = 300; y < 420; y += 18) {
+    ctx.beginPath(); ctx.moveTo(0, y);
+    for (let x = 0; x <= w; x += 40) {
+      ctx.lineTo(x + 20, y + (Math.random()*4-2));
+      ctx.lineTo(x + 40, y);
+    }
+    ctx.stroke();
+  }
+
+  // Grid dots (subtle)
+  const cols = 5, rows = 1;
+  const cellW = w / (cols + 1);
+  ctx.fillStyle = dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
+  for (let c = 1; c <= cols; c++) {
+    const gx = c * cellW;
+    const gy = 275;
+    ctx.beginPath(); ctx.arc(gx, gy, 3, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+function getGridPositions() {
+  const canvas = document.getElementById('garden-canvas');
+  const w = canvas.offsetWidth || 680;
+  const cols = 5;
+  const cellW = w / (cols + 1);
+  return Array.from({length: cols}, (_, i) => ({
+    x: (i + 1) * cellW,
+    y: 275,
+    pct: { x: ((i+1) * cellW / w) * 100, y: (275 / 420) * 100 }
+  }));
+}
+
+// ============================================================
+// PLANT SVG GENERATOR
+// ============================================================
+function generatePlantSVG(plantTypeId, phase, completed, size=60) {
+  const pt = PLANT_TYPES[plantTypeId];
+  if (!pt) return '';
+  const progress = Math.min(phase / 5, 1);
+  const h = Math.round(20 + progress * 60);
+  const color = pt.color;
+  const tier = pt.tier;
+
+  // Base SVG
+  let svg = `<svg width="${size}" height="${size+10}" viewBox="0 0 60 70" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Stem
+  const stemH = Math.round(10 + progress * 30);
+  svg += `<line x1="30" y1="70" x2="30" y2="${70-stemH}" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>`;
+
+  // Growth stage visuals
+  if (phase === 0) {
+    // Just a seed bump
+    svg += `<ellipse cx="30" cy="65" rx="6" ry="4" fill="${color}" opacity="0.6"/>`;
+  } else if (phase === 1) {
+    // Tiny sprout
+    svg += `<ellipse cx="24" cy="${70-stemH}" rx="7" ry="4" fill="${color}" opacity="0.7" transform="rotate(-30,24,${70-stemH})"/>`;
+    svg += `<ellipse cx="36" cy="${70-stemH+2}" rx="7" ry="4" fill="${color}" opacity="0.7" transform="rotate(30,36,${70-stemH+2})"/>`;
+  } else if (phase === 2) {
+    // Small plant
+    svg += `<ellipse cx="22" cy="${70-stemH+2}" rx="9" ry="5" fill="${color}" opacity="0.8" transform="rotate(-40,22,${70-stemH+2})"/>`;
+    svg += `<ellipse cx="38" cy="${70-stemH+2}" rx="9" ry="5" fill="${color}" opacity="0.8" transform="rotate(40,38,${70-stemH+2})"/>`;
+    svg += `<circle cx="30" cy="${70-stemH-4}" r="6" fill="${color}" opacity="0.7"/>`;
+  } else if (phase === 3) {
+    // Medium
+    for (let a = 0; a < 5; a++) {
+      const ang = (a * 72 - 90) * Math.PI / 180;
+      const lx = 30 + Math.cos(ang) * 12;
+      const ly = (70-stemH-4) + Math.sin(ang) * 12;
+      svg += `<ellipse cx="${lx}" cy="${ly}" rx="7" ry="4" fill="${color}" opacity="0.8" transform="rotate(${a*72-90},${lx},${ly})"/>`;
+    }
+    svg += `<circle cx="30" cy="${70-stemH-4}" r="7" fill="${color}"/>`;
+  } else {
+    // Phase 4 or 5 — full bloom
+    const topY = 70 - stemH - 6;
+    for (let a = 0; a < 6; a++) {
+      const ang = (a * 60 - 90) * Math.PI / 180;
+      const lx = 30 + Math.cos(ang) * 14;
+      const ly = topY + Math.sin(ang) * 14;
+      svg += `<ellipse cx="${lx}" cy="${ly}" rx="9" ry="5" fill="${color}" opacity="0.85" transform="rotate(${a*60},${lx},${ly})"/>`;
+    }
+    svg += `<circle cx="30" cy="${topY}" r="9" fill="${color}"/>`;
+    // Tier glow/detail
+    if (tier === 'rare') {
+      svg += `<circle cx="30" cy="${topY}" r="5" fill="white" opacity="0.3"/>`;
+    } else if (tier === 'extinct') {
+      svg += `<circle cx="30" cy="${topY}" r="5" fill="white" opacity="0.5"/>`;
+      // sparkles
+      svg += `<circle cx="${30+16}" cy="${topY-8}" r="2" fill="${color}" opacity="0.6"/>`;
+      svg += `<circle cx="${30-14}" cy="${topY-10}" r="2" fill="${color}" opacity="0.6"/>`;
+    }
+  }
+
+  // Completion star if done
+  if (completed && phase >= 4) {
+    svg += `<text x="48" y="14" font-size="12" text-anchor="middle">✨</text>`;
+  }
+
+  svg += `</svg>`;
+  return svg;
+}
+
+function getPhase(plantedAt) {
+  const elapsed = (Date.now() - plantedAt) / 60000; // minutes
+  let acc = 0;
+  for (let i = 0; i < PHASE_DURATIONS.length; i++) {
+    acc += PHASE_DURATIONS[i];
+    if (elapsed < acc) return i + 1;
+  }
+  return 5; // fully grown
+}
+
+// ============================================================
+// RENDER PLANTS
+// ============================================================
+function renderPlants() {
+  const layer = document.getElementById('plant-layer');
+  layer.innerHTML = '';
+  const positions = getGridPositions();
+  const canvas = document.getElementById('garden-canvas');
+  const cw = canvas.offsetWidth || 680;
+  const ch = 420;
+
+  state.planted.forEach((plant, idx) => {
+    const gridIdx = plant.position?.gridX ?? idx;
+    const pos = positions[gridIdx] || positions[idx % 5];
+
+    const phase = getPhase(plant.plantedAt);
+    const svg = generatePlantSVG(plant.plantTypeId, phase, plant.completed, 60);
+
+    const el = document.createElement('div');
+    el.className = 'plant-el' + (!plant.completed && phase >= 5 ? ' blurred' : '');
+    el.style.left = (pos.x / cw * 100) + '%';
+    el.style.top = (pos.y / ch * 100) + '%';
+    el.innerHTML = `<div class="plant-svg">${svg}</div>`;
+    el.title = PLANT_TYPES[plant.plantTypeId]?.name || 'Plant';
+    el.addEventListener('click', () => showPlantDetail(plant));
+    layer.appendChild(el);
+  });
+}
+
+// ============================================================
+// RENDER SEED BANK
+// ============================================================
+function renderSeedBank() {
+  const container = document.getElementById('seed-slots');
+  const titleEl = container.closest('.card').querySelector('.card-title');
+  titleEl.textContent = `🌰 Seed Bank (${state.seedBank.length}/5)`;
+  container.innerHTML = '';
+
+  for (let i = 0; i < 5; i++) {
+    const seed = state.seedBank[i];
+    const slot = document.createElement('div');
+    if (seed) {
+      slot.className = 'seed-slot';
+      const tierClass = `tier-${seed.tier}`;
+      slot.innerHTML = `
+        <span class="seed-icon">🌰</span>
+        <div class="seed-info">
+          <div class="seed-task">${seed.fromTask || 'Unknown task'}</div>
+          <span class="seed-tier ${tierClass}">${seed.tier.toUpperCase()}</span>
+        </div>
+      `;
+      slot.addEventListener('click', () => tryPlantSeed(i));
+    } else {
+      slot.className = 'seed-slot empty';
+      slot.innerHTML = `<span class="seed-icon" style="opacity:0.3">○</span><div class="seed-info"><div class="seed-task" style="color:var(--text3)">Empty slot</div></div>`;
+    }
+    container.appendChild(slot);
+  }
+}
+
+// ============================================================
+// RENDER PLANTED LIST
+// ============================================================
+function renderPlantedList() {
+  const container = document.getElementById('planted-list');
+  const titleEl = container.closest('.card').querySelector('.card-title');
+  titleEl.textContent = `🌿 Planted (${state.planted.length}/5)`;
+  container.innerHTML = '';
+
+  if (state.planted.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div>No plants yet</div></div>';
+    return;
+  }
+
+  state.planted.forEach((plant) => {
+    const pt = PLANT_TYPES[plant.plantTypeId];
+    const phase = getPhase(plant.plantedAt);
+    const phaseNames = ['Seed','Sprout','Sapling','Growing','Budding','Bloomed'];
+    const item = document.createElement('div');
+    item.className = 'planted-item';
+    item.innerHTML = `
+      <span class="planted-icon">${pt.emoji}</span>
+      <div class="planted-info">
+        <div class="planted-task">${plant.taskTitle}</div>
+        <div class="planted-phase">${pt.name} · Phase ${phase}/5</div>
+      </div>
+      ${!plant.completed ? `<button class="btn-complete" data-id="${plant.id}">Done ✓</button>` : '<span style="font-size:11px;color:var(--accent)">✓ Done</span>'}
+    `;
+    item.querySelector('.planted-info').addEventListener('click', () => showPlantDetail(plant));
+    const btn = item.querySelector('.btn-complete');
+    if (btn) btn.addEventListener('click', (e) => { e.stopPropagation(); completePlant(plant.id); });
+    container.appendChild(item);
+  });
+}
+
+// ============================================================
+// PLANT A SEED
+// ============================================================
+function tryPlantSeed(seedIdx) {
+  if (state.planted.length >= 5) {
+    showToast('Garden is full! (5/5 planted)'); return;
+  }
+  const seed = state.seedBank[seedIdx];
+  if (!seed) return;
+
+  // Find free grid slot
+  const usedSlots = new Set(state.planted.map(p => p.position?.gridX));
+  let freeSlot = -1;
+  for (let i = 0; i < 5; i++) { if (!usedSlots.has(i)) { freeSlot = i; break; } }
+  if (freeSlot < 0) { showToast('No grid space!'); return; }
+
+  const plant = {
+    id: Date.now().toString(),
+    tier: seed.tier,
+    plantTypeId: seed.plantTypeId,
+    plantedAt: Date.now(),
+    position: { gridX: freeSlot, gridY: 0 },
+    taskTitle: seed.fromTask,
+    estimatedMinutes: seed.estimatedMinutes || 30,
+    completed: false,
+    completedAt: null,
+  };
+  state.planted.push(plant);
+  state.seedBank.splice(seedIdx, 1);
+  saveState();
+  renderAll();
+  showToast(`🌱 ${PLANT_TYPES[plant.plantTypeId].name} planted!`);
+}
+
+// ============================================================
+// COMPLETE A PLANT
+// ============================================================
+function completePlant(plantId) {
+  const plant = state.planted.find(p => p.id === plantId);
+  if (!plant || plant.completed) return;
+  plant.completed = true;
+  plant.completedAt = Date.now();
+
+  // Update catalogue
+  if (!state.catalogue[plant.plantTypeId]) state.catalogue[plant.plantTypeId] = { discovered: false, count: 0 };
+  state.catalogue[plant.plantTypeId].discovered = true;
+  state.catalogue[plant.plantTypeId].count++;
+
+  // Generate new seed based on tier
+  const newSeed = generateSeed(plant.tier, plant.taskTitle);
+  let seedMsg = '';
+  if (newSeed && state.seedBank.length < 5) {
+    state.seedBank.push(newSeed);
+    seedMsg = `<p style="font-size:12px;color:var(--text3);margin-top:8px;">New <strong>${newSeed.tier}</strong> seed added to your bank!</p>`;
+  } else if (newSeed && state.seedBank.length >= 5) {
+    seedMsg = `<p style="font-size:12px;color:var(--danger);margin-top:8px;">Seed lost — bank is full!</p>`;
+  } else {
+    seedMsg = `<p style="font-size:12px;color:var(--text3);margin-top:8px;">Extinct plants don't produce seeds.</p>`;
+  }
+
+  saveState();
+  renderAll();
+  const pt = PLANT_TYPES[plant.plantTypeId];
+  showRewardModal(pt, seedMsg);
+}
+
+function generateSeed(fromTier, fromTask) {
+  if (fromTier === 'extinct') return null;
+  const probs = PROB[fromTier];
+  const roll = Math.random();
+  let newTier;
+  if (roll < probs.basic) newTier = 'basic';
+  else if (roll < probs.basic + probs.rare) newTier = 'rare';
+  else newTier = 'extinct';
+
+  const pool = TIER_GROUPS[newTier];
+  const plantTypeId = pool[Math.floor(Math.random() * pool.length)];
+  return {
+    id: Date.now().toString() + Math.random(),
+    tier: newTier,
+    plantTypeId,
+    fromTask,
+    estimatedMinutes: 30,
+  };
+}
+
+// ============================================================
+// TASKS
+// ============================================================
+function renderTasks() {
+  const list = document.getElementById('task-list');
+  const stats = document.getElementById('task-stats');
+  const tasks = state.tasks || [];
+
+  const done = tasks.filter(t => t.completed).length;
+  stats.innerHTML = `
+    <div class="stat-chip"><div class="stat-value">${tasks.length}</div><div class="stat-label">Total</div></div>
+    <div class="stat-chip"><div class="stat-value">${tasks.filter(t=>!t.completed).length}</div><div class="stat-label">Pending</div></div>
+    <div class="stat-chip"><div class="stat-value">${done}</div><div class="stat-label">Done</div></div>
+    <div class="stat-chip"><div class="stat-value">${state.seedBank.length}</div><div class="stat-label">Seeds</div></div>
+  `;
+
+  if (tasks.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="es-icon">📋</div><div>No tasks yet. Create one to get your first seed!</div></div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  // Pending first
+  const sorted = [...tasks.filter(t=>!t.completed), ...tasks.filter(t=>t.completed)];
+  sorted.forEach(task => {
+    const div = document.createElement('div');
+    div.className = 'task-card';
+    const hasSeed = state.seedBank.some(s => s.fromTaskId === task.id);
+    const hasPlant = state.planted.some(p => p.taskTitle === task.title);
+    div.innerHTML = `
+      <div class="task-main">
+        <div class="task-title-text" style="${task.completed?'text-decoration:line-through;opacity:0.5':''}">${task.title}</div>
+        <div class="task-meta">~${task.estimatedMinutes || '?'} min${task.notes ? ' · '+task.notes : ''}${task.completed?' · ✓ Completed':''}</div>
+      </div>
+      <div class="task-actions">
+        ${!task.completed && !hasSeed && !hasPlant ? `<button class="btn-sm" data-gen="${task.id}">🌰 Get Seed</button>` : ''}
+        <button class="btn-sm danger" data-del="${task.id}">✕</button>
+      </div>
+    `;
+    div.querySelector('[data-del]')?.addEventListener('click', () => deleteTask(task.id));
+    div.querySelector('[data-gen]')?.addEventListener('click', () => generateSeedFromTask(task));
+    list.appendChild(div);
+  });
+}
+
+let editingTaskId = null;
+document.getElementById('add-task-btn').addEventListener('click', () => {
+  editingTaskId = null;
+  document.getElementById('modal-task-title').textContent = 'New Task';
+  document.getElementById('task-title-input').value = '';
+  document.getElementById('task-time-input').value = '';
+  document.getElementById('task-notes-input').value = '';
+  openModal('modal-task');
+});
+
+document.getElementById('save-task-btn').addEventListener('click', () => {
+  const title = document.getElementById('task-title-input').value.trim();
+  const mins = parseInt(document.getElementById('task-time-input').value) || 30;
+  const notes = document.getElementById('task-notes-input').value.trim();
+  if (!title) { showToast('Please enter a task title'); return; }
+
+  if (editingTaskId) {
+    const t = state.tasks.find(t => t.id === editingTaskId);
+    if (t) { t.title = title; t.estimatedMinutes = mins; t.notes = notes; }
+  } else {
+    state.tasks.push({ id: Date.now().toString(), title, estimatedMinutes: mins, notes, completed: false, createdAt: Date.now() });
+  }
+  saveState();
+  closeModal('modal-task');
+  renderTasks();
+  showToast('Task saved!');
+});
+
+function deleteTask(id) {
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  saveState(); renderTasks();
+}
+
+function generateSeedFromTask(task) {
+  if (state.seedBank.length >= 5) { showToast('Seed bank full! (5/5)'); return; }
+  // New tasks get basic seeds
+  const seed = {
+    id: Date.now().toString(),
+    tier: 'basic',
+    plantTypeId: TIER_GROUPS.basic[Math.floor(Math.random() * 5)],
+    fromTask: task.title,
+    fromTaskId: task.id,
+    estimatedMinutes: task.estimatedMinutes,
+  };
+  state.seedBank.push(seed);
+  task.completed = true;
+  saveState();
+  renderAll();
+  showToast(`🌰 Basic seed added to bank!`);
+}
+
+// ============================================================
+// CATALOGUE
+// ============================================================
+function renderCatalogue() {
+  const grid = document.getElementById('catalogue-grid');
+  grid.innerHTML = '';
+  PLANT_TYPES.forEach(pt => {
+    const entry = state.catalogue[pt.id] || { discovered: false, count: 0 };
+    const card = document.createElement('div');
+    card.className = 'catalogue-card ' + (entry.discovered ? 'discovered' : 'undiscovered');
+    const tierColors = { basic: 'var(--text3)', rare: 'var(--rare)', extinct: 'var(--extinct)' };
+    const tierBg = { basic: 'var(--bg3)', rare: 'var(--rare-light)', extinct: 'var(--extinct-light)' };
+    card.innerHTML = `
+      <div class="catalogue-icon ${entry.discovered?'':'hidden'}">${entry.discovered ? pt.emoji : '?'}</div>
+      <div class="catalogue-name ${entry.discovered?'':'hidden'}">${entry.discovered ? pt.name : '???'}</div>
+      ${entry.discovered ? `<div class="catalogue-desc">${pt.desc}</div>` : ''}
+      <div>
+        <span class="catalogue-tier-badge" style="background:${tierBg[pt.tier]};color:${tierColors[pt.tier]}">${pt.tier}</span>
+      </div>
+      ${entry.discovered ? `<div class="catalogue-count">×${entry.count} discovered</div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+function showPlantDetail(plant) {
+  const pt = PLANT_TYPES[plant.plantTypeId];
+  const phase = getPhase(plant.plantedAt);
+  const elapsed = (Date.now() - plant.plantedAt) / 60000;
+  const progress = Math.min((elapsed / TOTAL_MINUTES) * 100, 100);
+  const svg = generatePlantSVG(plant.plantTypeId, phase, plant.completed, 80);
+  const tierColors = { basic: 'var(--text3)', rare: 'var(--rare)', extinct: 'var(--extinct)' };
+  const tierBg = { basic: 'var(--bg3)', rare: 'var(--rare-light)', extinct: 'var(--extinct-light)' };
+
+  document.getElementById('plant-detail-content').innerHTML = `
+    <div style="font-size:48px;margin-bottom:8px">${pt.emoji}</div>
+    <h3 style="font-family:'Lora',serif;font-size:22px;margin-bottom:4px">${pt.name}</h3>
+    <span style="display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;background:${tierBg[pt.tier]};color:${tierColors[pt.tier]};margin-bottom:12px">${pt.tier.toUpperCase()}</span>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.6">${pt.desc}</p>
+    <div class="phase-bar-wrap">
+      <div class="phase-bar"><div class="phase-bar-fill" style="width:${progress}%"></div></div>
+      <div class="phase-label">Phase ${phase}/5 · ${Math.round(progress)}% grown</div>
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--text3)">
+      Task: <strong>${plant.taskTitle}</strong><br>
+      Planted: ${new Date(plant.plantedAt).toLocaleDateString()}<br>
+      Status: <strong style="color:${plant.completed?'var(--accent)':'var(--text2)'}}">${plant.completed ? '✓ Completed' : 'In progress'}</strong>
+    </div>
+  `;
+  openModal('modal-plant-detail');
+}
+
+function showRewardModal(pt, seedMsg) {
+  const tierColors = { basic: 'var(--text3)', rare: 'var(--rare)', extinct: 'var(--extinct)' };
+  const tierBg = { basic: 'var(--bg3)', rare: 'var(--rare-light)', extinct: 'var(--extinct-light)' };
+  document.getElementById('reward-content').innerHTML = `
+    <div style="font-size:20px;margin-bottom:8px">Task Complete!</div>
+    <div class="reward-plant">${pt.emoji}</div>
+    <div class="reward-title">${pt.name}</div>
+    <span class="reward-tier" style="background:${tierBg[pt.tier]};color:${tierColors[pt.tier]}">${pt.tier.toUpperCase()}</span>
+    <div class="reward-desc">${pt.desc}</div>
+    ${seedMsg}
+  `;
+  openModal('modal-reward');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// RENDER ALL
+// ============================================================
+function renderAll() {
+  drawGardenCanvas();
+  renderPlants();
+  renderSeedBank();
+  renderPlantedList();
+  renderTasks();
+  renderCatalogue();
+}
+
+// Auto-refresh plants every minute (phase updates)
+setInterval(() => {
+  if (userId && document.getElementById('panel-garden').classList.contains('active')) {
+    renderPlants();
+    renderPlantedList();
+  }
+}, 60000);
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', () => {
+  // Wait for Google GSI to load
+  const tryInit = setInterval(() => {
+    if (typeof google !== 'undefined') {
+      clearInterval(tryInit);
+      initGoogleAuth();
+    }
+  }, 100);
+
+  // Draw canvas even before login
+  drawGardenCanvas();
+
+  // Canvas resize handler
+  window.addEventListener('resize', () => {
+    if (document.getElementById('panel-garden').classList.contains('active')) {
+      drawGardenCanvas();
+      renderPlants();
+    }
+  });
+});
+</script>
+</body>
+</html>
